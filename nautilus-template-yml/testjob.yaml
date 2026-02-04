@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: jowemorr-carla
+spec:
+  template:
+    spec:
+      containers:
+      - name: jowemorr-carla
+        image: pytorch/pytorch
+        command:
+        - sh
+        - -c
+        - "cd /pvcvolume && pip install -r requirements.txt && cd block-diffusion && python3 voxelize.py"
+        volumeMounts:
+        - name: pvcvolume
+          mountPath: /pvcvolume
+        resources:
+          limits:
+            memory: 100Gi
+            cpu: "32"
+            nvidia.com/gpu: 1
+          requests:
+            memory: 100Gi
+            cpu: "32"
+            nvidia.com/gpu: 1
+      volumes:
+      - name: pvcvolume
+        persistentVolumeClaim:
+          claimName: jowemorr-carla
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: nvidia.com/gpu.product
+      #           operator: In
+      #           values:
+      #           - NVIDIA-A10
+      restartPolicy: Never
+  backoffLimit: 2

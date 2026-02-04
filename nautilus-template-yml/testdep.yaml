@@ -1,0 +1,62 @@
+# image: nvidia/cuda:12.4.1-cudnn-devel-ubuntu20.04
+# image: nvidia/12.8.1-cudnn-devel-ubuntu20.04
+
+# Tip -> Find and replace "jonathan-autogen" with the PVC name
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jonathan-autogen
+  labels:
+    k8s-app: jonathan-autogen
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: jonathan-autogen
+  template:
+    metadata:
+      labels:
+        k8s-app: jonathan-autogen
+    spec:
+      containers:
+      - name: jonathan-autogen
+        image: nvidia/cuda:12.9.1-cudnn-devel-ubuntu24.04
+        resources:
+          limits:
+            memory: 100Gi
+            cpu: "20"
+            nvidia.com/gpu: 1
+          requests:
+            memory: 100Gi
+            cpu: "20"
+            nvidia.com/gpu: 1
+        command: [ "sh", "-c", "sleep infinity" ]
+        volumeMounts:
+        - mountPath: /pvcvolume
+          name: vol1
+        # - mountPath: /shapenet
+        #   name: vol2
+      volumes:
+      - name: vol1
+        persistentVolumeClaim:
+          claimName: jonathan-autogen
+      # - name: vol2
+      #   persistentVolumeClaim:
+      #     claimName: jonathan-shapenet
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: nvidia.com/gpu.product
+      #           operator: In
+      #           values:
+      #           - NVIDIA-L40
+      #         - key: kubernetes.io/hostname
+      #           operator: In
+      #           values:
+      #           - k8s-gpu-5.ucsc.edu
+      tolerations:
+      - effect: NoSchedule
+        key: nautilus.io/gilpin-lab
+        operator: Exists
