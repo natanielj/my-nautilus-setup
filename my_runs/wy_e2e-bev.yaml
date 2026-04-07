@@ -1,0 +1,72 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: waymo-e2e-bev
+spec:
+  template:
+    spec:
+      containers:
+      - name: waymo-e2e-bev
+        image: pytorch/pytorch
+        command:
+        - sh
+        - -c
+        - |
+          apt-get update && apt-get install -y \
+          libx11-6 \
+          libxext6 \
+          libxrender1 \
+          libsm6 \
+          libice6 \
+          libgl1 && \
+          source /workdir/crash-team/conda/bin/activate && \
+          cd /workdir/data/e2e/work/waymo-challenge-2025/end-to-end-driving/bev_implement/ && \
+          conda activate ./vision_env && \
+          cd ./lidarSLAM && \
+          python3 main.py \
+            --dataset-path /workdir/data/pytorch-e2e/converted/ \
+            --output-root /workdir/data/pytorch-e2e \
+            --splits training validation
+
+        volumeMounts:
+        - name: e2e
+          mountPath: /workdir/data/e2e
+        
+        - name: pytorch-e2e
+          mountPath: /workdir/data/pytorch-e2e
+
+        - mountPath: /workdir/crash-team
+          name: crash-team-vol
+
+        - mountPath: /workdir/citris-aviation
+          name: citris-aviation
+
+        resources:
+          limits:
+            memory: 8Gi
+            cpu: "8"
+            nvidia.com/gpu: 1
+            # nvidia.com/gtx-3090: 1
+          requests:
+            memory: 8Gi
+            cpu: "8"
+            nvidia.com/gpu: 1
+            # nvidia.com/gtx-3090: 1
+      volumes:
+        - name: e2e
+          persistentVolumeClaim:
+            claimName: waymo-e2e-dataset
+
+        - name: pytorch-e2e
+          persistentVolumeClaim:
+            claimName: waymo-e2e-dataset-conv
+
+        - name: crash-team-vol
+          persistentVolumeClaim:
+            claimName: crash-team-work
+
+        - name: citris-aviation
+          persistentVolumeClaim:
+            claimName: citris-aviation-work
+      restartPolicy: Never
+  backoffLimit: 2

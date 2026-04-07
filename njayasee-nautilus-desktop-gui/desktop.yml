@@ -65,11 +65,10 @@ spec:
           limits:
             memory: 32Gi
             cpu: "16"
-            nvidia.com/gpu: 1
             ephemeral-storage: 35Gi
           requests:
-            memory: 8Gi
-            cpu: "4"
+            memory: 12Gi
+            cpu: "8"
             ephemeral-storage: 35Gi
         volumeMounts:
         - mountPath: /dev/shm
@@ -78,12 +77,16 @@ spec:
           name: cache-vol
         - mountPath: /home/ubuntu/persistent
           name: root-vol
-        - mountPath: /crash-team
+        - mountPath: /workdir/crash-team
           name: crash-team-vol
         - name: e2e
-          mountPath: /data
+          mountPath: /workdir/challenge-team
         - name: pytorch-e2e
-          mountPath: /data/pytorch-e2e
+          mountPath: /workdir/data/pytorch-e2e
+        - name: citris-aviation
+          mountPath: /workdir/citris-aviation
+        - name: lidar-flow
+          mountPath: /workdir/challenge-team/lidar-flow
       dnsPolicy: None
       dnsConfig:
         nameservers:
@@ -107,6 +110,12 @@ spec:
       - name: pytorch-e2e
         persistentVolumeClaim:
           claimName: waymo-e2e-dataset-conv  
+      - name: citris-aviation
+        persistentVolumeClaim:
+          claimName: citris-aviation-work
+      - name: lidar-flow
+        persistentVolumeClaim:
+          claimName: argoverse-challenge
 
       affinity:
         nodeAffinity:

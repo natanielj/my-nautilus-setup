@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: citris-vpr-model
+spec:
+  template:
+    spec:
+      containers:
+      - name: citris-vpr-model
+        image: pytorch/pytorch
+        command:
+        - bash
+        - -lc
+        - |
+            source /workdir/crash-team/conda/bin/activate && \
+            conda activate /workdir/citris-aviation/envs/vpr_model && \
+            pip install -r /workdir/citris-aviation/CITRIS-UCSC-Airlink/vpr_model/requirements.txt && \
+            python3 /workdir/citris-aviation/CITRIS-UCSC-Airlink/vpr_model/main.py 
+
+        volumeMounts:
+        # - name: e2e
+        #   mountPath: /workdir/data/e2e
+        
+        # - name: pytorch-e2e
+        #   mountPath: /workdir/data/pytorch-e2e
+
+        - mountPath: /workdir/crash-team
+          name: crash-team-vol
+
+        - mountPath: /workdir/citris-aviation
+          name: citris-aviation
+
+        resources:
+          limits:
+            memory: 8Gi
+            cpu: "8"
+            nvidia.com/gpu: 1
+            # nvidia.com/gtx-3090: 1
+          requests:
+            memory: 8Gi
+            cpu: "8"
+            nvidia.com/gpu: 1
+            # nvidia.com/gtx-3090: 1
+      volumes:
+        - name: crash-team-vol
+          persistentVolumeClaim:
+            claimName: crash-team-work
+
+        - name: citris-aviation
+          persistentVolumeClaim:
+            claimName: citris-aviation-work
+      restartPolicy: Never
+  backoffLimit: 2
